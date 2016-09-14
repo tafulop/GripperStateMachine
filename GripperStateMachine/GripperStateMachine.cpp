@@ -28,6 +28,9 @@ double analogPosition;
 
 double openLimit = 245; // analog pos > openlimit -> gripper open
 double closeLimit = 2; // analogpos < closelimit -> gripper closed
+double objectGrippedUpperLimit = 160;
+double objectGrippedLowerLimit = 140;
+
 
 int main()
 {
@@ -48,7 +51,7 @@ int main()
 	gripperStopped = true;
 	resolveState();
 
-	std::cout << "Opening state, should be 3 : " << gripperState << "\n";
+	std::cout << "Opened state, should be 3 : " << gripperState << "\n";
 
 
 	// closing
@@ -71,7 +74,7 @@ int main()
 	std::cout << "Closed wo obj state, should be 4 : " << gripperState << "\n";
 
 
-	// closed without object
+	// closed with object
 	analogPosition = 150;
 	gripperOpen = false;
 	gripperClose = false;
@@ -80,6 +83,15 @@ int main()
 
 	std::cout << "Closed with obj state, should be 5 : " << gripperState << "\n";
 
+
+	// bad drive mode
+	analogPosition = 150;
+	gripperOpen = true;
+	gripperClose = true;
+	gripperStopped = false;
+	resolveState();
+
+	std::cout << "Bad drive state, should be 666 : " << gripperState << "\n";
 
 	char c;
 	std::cin >> c;
@@ -135,11 +147,11 @@ inline bool handleOpenedState() {
 }
 
 inline bool handleClosedObjectPresentState() {
-	return (gripperStopped == true && analogPosition <= openLimit &&analogPosition >= closeLimit);
+	return (gripperStopped == true && analogPosition <= objectGrippedUpperLimit && analogPosition >= objectGrippedLowerLimit );
 }
 
 inline bool handleClosedObjectNotPresentState() {
-	return (gripperStopped == true && analogPosition <= closeLimit);
+	return (gripperStopped == true && (analogPosition < objectGrippedLowerLimit || analogPosition > objectGrippedUpperLimit));
 }
 
 inline bool handleClosingState() {
